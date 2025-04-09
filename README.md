@@ -1,4 +1,4 @@
-# Sistema de Contenedores Educativos - Universidad
+# Sistema de Contenedores Educativos - Universidad Modelo
 
 Este sistema automatiza la creación de entornos tipo VPS para alumnos usando Docker y Portainer. 
 Cada contenedor brinda acceso SSH individual y un entorno Ubuntu personalizado con las herramientas necesarias para prácticas académicas.
