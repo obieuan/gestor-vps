@@ -88,6 +88,20 @@ Todos los entornos exponen además **5 puertos extra** (rango 57000–57999) par
   app.listen(3000, '0.0.0.0');
   ```
 
+
+## 🧰 Límites de Recursos por Imagen
+
+Cada contenedor tiene asignados límites automáticos de memoria y CPU según la imagen utilizada, para evitar sobrecargar el servidor:
+
+| Imagen Docker         | RAM Asignada | CPU Asignado | Uso Recomendado                              |
+|-----------------------|--------------|--------------|-----------------------------------------------|
+| ubuntu-python3        | 256 MB       | 0.5 CPU      | Scripts CLI o terminal básico                |
+| ubuntu-nodejs         | 512 MB       | 1.0 CPU      | Frontend con React, Vite o Express           |
+| ubuntu-fullstack      | 1 GB         | 2.0 CPU      | Proyectos completos frontend + backend       |
+| ubuntu-datascience    | 2 GB         | 2.0 CPU      | Ciencia de datos con Jupyter                 |
+| ubuntu-vscode         | 1 GB         | 1.5 CPU      | Desarrollo remoto vía navegador              |
+| ubuntu-mysql-server   | 1 GB         | 1.0 CPU      | Base de datos para pruebas                   |
+
 - Los contenedores tienen asignaciones de puertos internos (dentro del contenedor) hacia puertos externos (visibles en Internet). La relación exacta se indica así:
 
 ### 🧭 Relación de puertos por contenedor
@@ -104,4 +118,37 @@ Todos los entornos exponen además **5 puertos extra** (rango 57000–57999) par
 
 ---
 
+## ⏱️ Tiempo de Vida (TTL) por Contenedor
 
+Cada contenedor tiene un tiempo de vida predefinido según su imagen y tipo de uso. Se eliminan automáticamente mediante un proceso diario programado (cron) o con un comando manual.
+
+| Imagen Docker         | TTL por defecto | TTL extendido (`--long`) |
+|-----------------------|------------------|----------------------------|
+| ubuntu-python3        | 4 horas          | 48 horas                  |
+| ubuntu-nodejs         | 8 horas          | 48 horas                  |
+| ubuntu-fullstack      | 24 horas         | 72 horas                  |
+| ubuntu-datascience    | 24 horas         | 72 horas                  |
+| ubuntu-vscode         | 12 horas         | 12 horas (solo interactivo) |
+| ubuntu-mysql-server   | 12 horas         | 48 horas                  |
+
+Todos los contenedores se crean con una etiqueta `expires_at=YYYY-MM-DDTHH:MM:SSZ`.
+
+## 🧼 Limpieza de Contenedores Expirados
+
+Los contenedores expirados se eliminan automáticamente con el script `limpiar_expirados.sh`.
+
+### 🔁 Programación con `cron` (recomendado)
+```bash
+0 2 * * * /ruta/completa/limpiar_expirados.sh >> /var/log/ttl_cleaner.log 2>&1
+```
+
+### 🧹 Ejecución manual:
+```bash
+./limpiar_expirados.sh
+```
+
+### 🗂️ Registro
+Las eliminaciones se registran en:
+```
+logs/ttl_eliminados.log
+```

@@ -1,3 +1,14 @@
+# Archivos de puertos y logs
 puertos_usados.txt
 log.txt
+
+# Accesos individuales con credenciales
 accesos/
+
+# Logs de limpieza TTL
+logs/
+
+# Archivos de sistema temporales
+*.swp
+*.bak
+*.tmp
