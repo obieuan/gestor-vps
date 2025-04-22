@@ -8,29 +8,45 @@ CONTENEDOR=$1
 PUERTOS_USADOS="puertos_usados.txt"
 PASS_LENGTH=10
 
+# ==== OPCIÓN DE MANTENIMIENTO GENERAL ====
+if [ "$1" == "mantenimiento" ]; then
+    echo "[🛠️  Mantenimiento General Iniciado]"
+    verificar_puertos
+    echo "[✔️  Puertos obsoletos liberados]"
+    
+    echo "[ℹ️  Contenedores activos:]"
+    docker ps --format " - {{.Names}} ({{.Image}}) - Estado: {{.Status}}"
+
+    echo "[📦 Espacio en disco por contenedor:]"
+    docker system df -v | grep -E 'CONTAINER|image:' | awk '{print $1, $2, $3, $4, $5}'
+
+    echo "[✅ Mantenimiento completo]"
+    exit 0
+fi
+
 # ==== OPCIÓN DE ELIMINAR CONTENEDOR ====
 if [ "$1" == "eliminar" ] && [ -n "$2" ]; then
     CONTENEDOR="$2"
     echo "[INFO] Eliminando contenedor $CONTENEDOR..."
 
     if docker inspect $CONTENEDOR &>/dev/null; then
-        PORT=$(docker port $CONTENEDOR 2222 | awk -F: '{print $2}')
+        # Obtener todos los puertos externos usados por este contenedor
+        docker port $CONTENEDOR | awk -F: '{print $2}' | while read port; do
+            if [ -n "$port" ]; then
+                sed -i "/$port/d" "$PUERTOS_USADOS"
+                echo "[INFO] Puerto $port liberado."
+            fi
+        done
+
         docker rm -f $CONTENEDOR
         echo "[INFO] Contenedor eliminado."
-
-        if [ -n "$PORT" ]; then
-            sed -i "/$PORT/d" "$PUERTOS_USADOS"
-            echo "[INFO] Puerto $PORT liberado."
-        fi
-
-        echo "$(date '+%Y-%m-%d %H:%M:%S') - ELIMINADO - $CONTENEDOR - Puerto: $PORT" >> log.txt
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - ELIMINADO - $CONTENEDOR - Puertos liberados" >> log.txt
     else
         echo "[WARN] El contenedor $CONTENEDOR no existe. No se puede eliminar."
     fi
 
     exit 0
 fi
-
 
 # ==== OPCIÓN DE LISTADO DE CONTENEDORES ====
 if [ "$1" == "listar" ]; then
@@ -151,6 +167,11 @@ if [ "$3" == "--long" ]; then
     MODO_TTL="largo"
 fi
 
+OMITIR_TTL=false
+if [ "$3" == "--sin-ttl" ]; then
+    OMITIR_TTL=true
+fi
+
 # Define TTLs en horas para cada imagen y modo
 case "$IMAGEN" in
     "ubuntu-python3")
@@ -195,7 +216,14 @@ EXPIRES_AT=$(date -u -d "+$TTL_HORAS hours" +"%Y-%m-%dT%H:%M:%SZ")
 # En docker run:
 # --label expires_at="$EXPIRES_AT"
 
-docker run -d --name $CONTENEDOR $PORT_MAP $LIMITS --label expires_at="$EXPIRES_AT" --restart unless-stopped $IMAGEN
+# Agregar la etiqueta solo si no se omite
+ETIQUETA_TTL=""
+if [ "$OMITIR_TTL" = false ]; then
+    ETIQUETA_TTL="--label expires_at=\\"$EXPIRES_AT\\""
+fi
+
+
+docker run -d --name $CONTENEDOR $PORT_MAP $LIMITS $ETIQUETA_TTL --restart unless-stopped $IMAGEN
 sleep 3
 
 docker exec -it $CONTENEDOR bash -c "useradd -ms /bin/bash $USERNAME && echo '$USERNAME:$PASSWORD' | chpasswd && usermod -aG sudo $USERNAME"

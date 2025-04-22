@@ -122,14 +122,14 @@ Cada contenedor tiene asignados límites automáticos de memoria y CPU según la
 
 Cada contenedor tiene un tiempo de vida predefinido según su imagen y tipo de uso. Se eliminan automáticamente mediante un proceso diario programado (cron) o con un comando manual.
 
-| Imagen Docker         | TTL por defecto | TTL extendido (`--long`) |
-|-----------------------|------------------|----------------------------|
-| ubuntu-python3        | 4 horas          | 48 horas                  |
-| ubuntu-nodejs         | 8 horas          | 48 horas                  |
-| ubuntu-fullstack      | 24 horas         | 72 horas                  |
-| ubuntu-datascience    | 24 horas         | 72 horas                  |
-| ubuntu-vscode         | 12 horas         | 12 horas (solo interactivo) |
-| ubuntu-mysql-server   | 12 horas         | 48 horas                  |
+| Imagen Docker         | TTL por defecto | TTL extendido (`--long`) | TTL desactivado (`--sin-ttl`) |
+|-----------------------|------------------|----------------------------|-------------------------------|
+| ubuntu-python3        | 4 horas          | 48 horas                  | ✅                            |
+| ubuntu-nodejs         | 8 horas          | 48 horas                  | ✅                            |
+| ubuntu-fullstack      | 24 horas         | 72 horas                  | ✅                            |
+| ubuntu-datascience    | 24 horas         | 72 horas                  | ✅                            |
+| ubuntu-vscode         | 12 horas         | 12 horas                  | ✅                            |
+| ubuntu-mysql-server   | 12 horas         | 48 horas                  | ✅                            |
 
 Todos los contenedores se crean con una etiqueta `expires_at=YYYY-MM-DDTHH:MM:SSZ`.
 
@@ -151,4 +151,27 @@ Los contenedores expirados se eliminan automáticamente con el script `limpiar_e
 Las eliminaciones se registran en:
 ```
 logs/ttl_eliminados.log
+```
+
+## ⏱️ Control de Tiempo de Vida (TTL) - Modos disponibles
+
+El script permite controlar cuánto tiempo debe vivir un contenedor al momento de su creación.
+
+### 🎯 Modos disponibles al crear el contenedor
+
+- `por defecto`: se asigna un TTL corto según la imagen (ver tabla abajo)
+- `--long`: asigna un TTL extendido, útil para proyectos de varios días
+- `--sin-ttl`: desactiva el tiempo de vida; el contenedor se mantendrá hasta que lo elimines manualmente
+
+### 📦 Ejemplos
+
+```bash
+# TTL corto (por defecto)
+./gestor_vps.sh alumno10 ubuntu-fullstack
+
+# TTL extendido
+./gestor_vps.sh alumno11 ubuntu-fullstack --long
+
+# Sin TTL (persistente hasta que lo elimines)
+./gestor_vps.sh alumno12 ubuntu-fullstack --sin-ttl
 ```
