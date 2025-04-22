@@ -12,30 +12,6 @@ MODO_TTL="corto"
 CONTENEDOR=""
 IMAGEN=""
 
-while getopts ":lwn" opt; do
-  case $opt in
-    l) MODO_TTL="largo" ;;
-    w) MODO_WEB=true ;;
-    n) OMITIR_TTL=true ;;
-    \?) echo "[ERROR] Opción inválida: -$OPTARG" >&2; exit 1 ;;
-  esac
-done
-
-# Elimina las opciones parseadas
-shift $((OPTIND -1))
-
-# Ahora el primer y segundo argumento son nombre e imagen
-CONTENEDOR="$1"
-IMAGEN="$2"
-
-if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
-    echo "Uso: ./gestor_vps.sh [-w] [-l] [-n] <nombre_contenedor> <nombre_imagen>"
-    echo "Opciones: -w (modo web), -l (TTL largo), -n (sin TTL)"
-    exit 1
-fi
-
-PUERTOS_USADOS="puertos_usados.txt"
-PASS_LENGTH=10
 
 # ==== OPCIÓN DE MANTENIMIENTO GENERAL ====
 if [ "$1" == "mantenimiento" ]; then
@@ -104,6 +80,39 @@ if [ "$1" == "listar" ]; then
 fi
 
 
+# ==== OPCIÓN DE LIMPIEZA MANUAL ====
+if [ "$1" == "verificar" ]; then
+    verificar_puertos
+    echo "[INFO] Verificación completa."
+    exit 0
+fi
+
+while getopts ":lwn" opt; do
+  case $opt in
+    l) MODO_TTL="largo" ;;
+    w) MODO_WEB=true ;;
+    n) OMITIR_TTL=true ;;
+    \?) echo "[ERROR] Opción inválida: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+
+# Elimina las opciones parseadas
+shift $((OPTIND -1))
+
+# Ahora el primer y segundo argumento son nombre e imagen
+CONTENEDOR="$1"
+IMAGEN="$2"
+
+if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
+    echo "Uso: ./gestor_vps.sh [-w] [-l] [-n] <nombre_contenedor> <nombre_imagen>"
+    echo "Opciones: -w (modo web), -l (TTL largo), -n (sin TTL)"
+    exit 1
+fi
+
+PUERTOS_USADOS="puertos_usados.txt"
+PASS_LENGTH=10
+
+
 # ==== FUNCIONES ====
 verificar_puertos() {
     echo "[INFO] Verificando puertos obsoletos..."
@@ -120,12 +129,6 @@ verificar_puertos() {
     rm -f "${PUERTOS_USADOS}.tmp"
 }
 
-# ==== OPCIÓN DE LIMPIEZA MANUAL ====
-if [ "$1" == "verificar" ]; then
-    verificar_puertos
-    echo "[INFO] Verificación completa."
-    exit 0
-fi
 
 # ==== VALIDACIÓN DE ENTRADAS ====
 #if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
