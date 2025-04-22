@@ -3,8 +3,37 @@
 # ==== CONFIGURACIÓN ====
 RANGO_INICIO=55001
 RANGO_FIN=55999
-IMAGEN=$2
-CONTENEDOR=$1
+# ==== PARSEAR OPCIONES CON GETOPTS ====
+MODO_WEB=false
+OMITIR_TTL=false
+MODO_TTL="corto"
+
+# Rescatar argumentos posicionales
+CONTENEDOR=""
+IMAGEN=""
+
+while getopts ":lwn" opt; do
+  case $opt in
+    l) MODO_TTL="largo" ;;
+    w) MODO_WEB=true ;;
+    n) OMITIR_TTL=true ;;
+    \?) echo "[ERROR] Opción inválida: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+
+# Elimina las opciones parseadas
+shift $((OPTIND -1))
+
+# Ahora el primer y segundo argumento son nombre e imagen
+CONTENEDOR="$1"
+IMAGEN="$2"
+
+if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
+    echo "Uso: ./gestor_vps.sh [-w] [-l] [-n] <nombre_contenedor> <nombre_imagen>"
+    echo "Opciones: -w (modo web), -l (TTL largo), -n (sin TTL)"
+    exit 1
+fi
+
 PUERTOS_USADOS="puertos_usados.txt"
 PASS_LENGTH=10
 
@@ -99,10 +128,10 @@ if [ "$1" == "verificar" ]; then
 fi
 
 # ==== VALIDACIÓN DE ENTRADAS ====
-if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
-    echo "Uso: ./gestor_vps.sh <nombre_contenedor> <nombre_imagen>"
-    exit 1
-fi
+#if [ -z "$CONTENEDOR" ] || [ -z "$IMAGEN" ]; then
+#    echo "Uso: ./gestor_vps.sh <nombre_contenedor> <nombre_imagen>"
+#    exit 1
+#fi
 
 # ==== LIMITES DE RECURSOS SEGÚN IMAGEN ====
 case "$IMAGEN" in
@@ -119,6 +148,11 @@ esac
 
 # ==== DEFINICIÓN DE PUERTOS POR IMAGEN ====
 declare -A PUERTOS_SERVICIOS
+# Si es ubuntu-base con --web, habilita el puerto 8080
+if [[ "$IMAGEN" == "ubuntu-base" && "$MODO_WEB" == true ]]; then
+    PUERTOS_SERVICIOS[Web]=8080
+fi
+
 case "$IMAGEN" in
     "ubuntu-nodejs") PUERTOS_SERVICIOS[Node]=3000 ;;
     "ubuntu-fullstack")
@@ -160,11 +194,13 @@ for servicio in "${!PUERTOS_SERVICIOS[@]}"; do
 done
 
 PUERTOS_EXTRA=()
-for i in {1..5}; do
-    port_extra=$(get_free_port)
-    PUERTOS_EXTRA+=($port_extra)
-    echo "$port_extra" >> "$PUERTOS_USADOS"
-done
+if [[ "$MODO_WEB" = true || "$IMAGEN" != "ubuntu-base" ]]; then
+    for i in {1..5}; do
+        port_extra=$(get_free_port)
+        PUERTOS_EXTRA+=($port_extra)
+        echo "$port_extra" >> "$PUERTOS_USADOS"
+    done
+fi
 
 # ==== GENERAR MAPEO DE PUERTOS ====
 PORT_MAP="-p ${PUERTOS_EXTERNOS[SSH]}:2222"
@@ -179,16 +215,17 @@ USERNAME="AlumnoUM$(echo $CONTENEDOR | tr -cd '0-9')"
 echo "[INFO] Creando contenedor '$CONTENEDOR' con imagen '$IMAGEN'"
 echo "[INFO] Usuario: $USERNAME | Contraseña: $PASSWORD"
 
-# ==== TTL AUTOMÁTICO SEGÚN IMAGEN Y MODO ====
-MODO_TTL="corto"
-if [ "$3" == "--long" ]; then
-    MODO_TTL="largo"
-fi
 
-OMITIR_TTL=false
-if [ "$3" == "--sin-ttl" ]; then
-    OMITIR_TTL=true
-fi
+# ==== TTL AUTOMÁTICO SEGÚN IMAGEN Y MODO ====
+#MODO_TTL="corto"
+#if [ "$3" == "--long" ]; then
+#    MODO_TTL="largo"
+#fi
+#
+#OMITIR_TTL=false
+#if [ "$3" == "--sin-ttl" ]; then
+#    OMITIR_TTL=true
+#fi
 
 # Define TTLs en horas para cada imagen y modo
 case "$IMAGEN" in
