@@ -73,8 +73,7 @@ Ejemplo:
 | `ubuntu-nodejs`           | ✅              | ✅               | 2222 (SSH), 3000                         | Ubuntu con Node.js para frontend o APIs           |
 | `ubuntu-fullstack`        | ✅              | ✅               | 2222 (SSH), 8000 (Django), 3000 (Node)  | Fullstack con Python/Django + Node.js             |
 | `ubuntu-datascience`      | ✅              | ✅               | 2222 (SSH), 8888                         | Ubuntu con Jupyter, pandas, numpy, matplotlib     |
-| `ubuntu-vscode`           | ❌              | ✅               | 8080                                     | Ubuntu con VS Code en el navegador (code-server)  |
-| `ubuntu-mysql-server`     | ❌              | ✅ (opcional)    | 3306                                     | MySQL listo para conectarse desde otros sistemas  |
+| `ubuntu-web`              | ✅              | ✅              | 3306, 80                                     | MySQL listo para conectarse desde otros sistemas  |
 
 Todos los entornos exponen además **5 puertos extra** (rango 57000–57999) para pruebas libres, servidores auxiliares, herramientas de desarrollo, etc.
 
@@ -99,8 +98,7 @@ Cada contenedor tiene asignados límites automáticos de memoria y CPU según la
 | ubuntu-nodejs         | 512 MB       | 1.0 CPU      | Frontend con React, Vite o Express           |
 | ubuntu-fullstack      | 1 GB         | 2.0 CPU      | Proyectos completos frontend + backend       |
 | ubuntu-datascience    | 2 GB         | 2.0 CPU      | Ciencia de datos con Jupyter                 |
-| ubuntu-vscode         | 1 GB         | 1.5 CPU      | Desarrollo remoto vía navegador              |
-| ubuntu-mysql-server   | 1 GB         | 1.0 CPU      | Base de datos para pruebas                   |
+| ubuntu-web            | 1 GB         | 1.0 CPU      | Base de datos para pruebas                   |
 
 - Los contenedores tienen asignaciones de puertos internos (dentro del contenedor) hacia puertos externos (visibles en Internet). La relación exacta se indica así:
 
@@ -124,12 +122,11 @@ Cada contenedor tiene un tiempo de vida predefinido según su imagen y tipo de u
 
 | Imagen Docker         | TTL por defecto | TTL extendido (`--long`) | TTL desactivado (`--sin-ttl`) |
 |-----------------------|------------------|----------------------------|-------------------------------|
-| ubuntu-python3        | 4 horas          | 48 horas                  | ✅                            |
-| ubuntu-nodejs         | 8 horas          | 48 horas                  | ✅                            |
-| ubuntu-fullstack      | 24 horas         | 72 horas                  | ✅                            |
+| ubuntu-python3        | 24 horas          | 48 horas                  | ✅                            |
+| ubuntu-nodejs         | 24 horas          | 48 horas                  | ✅                            |
+| ubuntu-fullstack      | 48 horas         | 96 horas                  | ✅                            |
 | ubuntu-datascience    | 24 horas         | 72 horas                  | ✅                            |
-| ubuntu-vscode         | 12 horas         | 12 horas                  | ✅                            |
-| ubuntu-mysql-server   | 12 horas         | 48 horas                  | ✅                            |
+| ubuntu-web            | 48 horas         | 96 horas                  | ✅                            |
 
 Todos los contenedores se crean con una etiqueta `expires_at=YYYY-MM-DDTHH:MM:SSZ`.
 

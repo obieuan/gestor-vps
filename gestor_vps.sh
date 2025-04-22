@@ -112,7 +112,9 @@ case "$IMAGEN" in
     "ubuntu-datascience") LIMITS="--memory=2g --cpus=2.0" ;;
     "ubuntu-vscode") LIMITS="--memory=1g --cpus=1.5" ;;
     "ubuntu-mysql-server") LIMITS="--memory=1g --cpus=1.0" ;;
+    "ubuntu-web") LIMITS="--memory=1g --cpus=1.0" ;;
     *) LIMITS="--memory=512m --cpus=1.0" ;;
+    
 esac
 
 # ==== DEFINICIÓN DE PUERTOS POR IMAGEN ====
@@ -124,6 +126,11 @@ case "$IMAGEN" in
         PUERTOS_SERVICIOS[Node]=3000 ;;
     "ubuntu-datascience") PUERTOS_SERVICIOS[Jupyter]=8888 ;;
     "ubuntu-vscode") PUERTOS_SERVICIOS[VSCode]=8080 ;;
+    "ubuntu-web")
+    PUERTOS_SERVICIOS[Apache]=80
+    PUERTOS_SERVICIOS[MySQL]=3306
+    ;;
+
 esac
 
 # ==== FUNCIÓN PARA ASIGNAR PUERTOS ====
@@ -186,16 +193,16 @@ fi
 # Define TTLs en horas para cada imagen y modo
 case "$IMAGEN" in
     "ubuntu-python3")
-        TTL_HORAS_CORTO=4
+        TTL_HORAS_CORTO=24
         TTL_HORAS_LARGO=48
         ;;
     "ubuntu-nodejs")
-        TTL_HORAS_CORTO=8
+        TTL_HORAS_CORTO=24
         TTL_HORAS_LARGO=48
         ;;
     "ubuntu-fullstack")
-        TTL_HORAS_CORTO=24
-        TTL_HORAS_LARGO=72
+        TTL_HORAS_CORTO=48
+        TTL_HORAS_LARGO=96
         ;;
     "ubuntu-datascience")
         TTL_HORAS_CORTO=24
@@ -209,6 +216,11 @@ case "$IMAGEN" in
         TTL_HORAS_CORTO=12
         TTL_HORAS_LARGO=48
         ;;
+    "ubuntu-web")
+        TTL_HORAS_CORTO=48
+        TTL_HORAS_LARGO=96
+        ;;
+
     *)
         TTL_HORAS_CORTO=12
         TTL_HORAS_LARGO=24
