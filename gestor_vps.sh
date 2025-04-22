@@ -48,21 +48,32 @@ if [ "$1" == "eliminar" ] && [ -n "$2" ]; then
     exit 0
 fi
 
-# ==== OPCIÓN DE LISTADO DE CONTENEDORES ====
 if [ "$1" == "listar" ]; then
-    echo "Contenedores activos registrados:"
-    echo "----------------------------------"
-    grep "CREADO" log.txt | while read -r line; do
-        FECHA=$(echo $line | awk '{print $1, $2}')
-        NOMBRE=$(echo $line | awk -F' - ' '{print $3}')
-        IMAGEN=$(echo $line | awk -F' - ' '{print $4}' | cut -d':' -f2)
-        PUERTO=$(echo $line | awk -F' - ' '{print $5}' | cut -d':' -f2)
-        USUARIO=$(echo $line | awk -F' - ' '{print $6}' | cut -d':' -f2)
-        echo "[$FECHA] Contenedor: $NOMBRE | Usuario: $USUARIO | Puerto SSH: $PUERTO | Imagen: $IMAGEN"
-    done
-    echo "----------------------------------"
+    if [ "$2" == "--historial" ]; then        
+        echo "Historial de contenedores registrados:"
+        echo "----------------------------------"
+        grep "CREADO" log.txt | while read -r line; do
+            FECHA=$(echo $line | awk '{print $1, $2}')
+            NOMBRE=$(echo $line | awk -F' - ' '{print $3}')
+            IMAGEN=$(echo $line | awk -F' - ' '{print $4}' | cut -d':' -f2)
+            PUERTO=$(echo $line | awk -F' - ' '{print $5}' | cut -d':' -f2)
+            USUARIO=$(echo $line | awk -F' - ' '{print $6}' | cut -d':' -f2)
+            echo "[$FECHA] Contenedor: $NOMBRE | Usuario: $USUARIO | Puerto SSH: $PUERTO | Imagen: $IMAGEN"
+        done
+        echo "----------------------------------"
+    else
+        echo "Contenedores actualmente activos:"
+        echo "----------------------------------"
+        docker ps --format '{{.Names}} {{.Image}} {{.Ports}}' | while read -r line; do
+            NOMBRE=$(echo $line | awk '{print $1}')
+            IMAGEN=$(echo $line | awk '{print $2}')
+            echo "Contenedor: $NOMBRE | Imagen: $IMAGEN"
+        done
+        echo "----------------------------------"
+    fi
     exit 0
 fi
+
 
 # ==== FUNCIONES ====
 verificar_puertos() {
